@@ -10,7 +10,10 @@ class OpenAiClient:
         self.previous_response_id: str | None = None
         self.model = MODEL
 
-    def process_prompt(self, prompt: str, language: str | None) -> str:
+    def process_prompt(self,
+                       prompt: str,
+                       language: str | None = None
+                       ) -> str:
 
         if language:
             instructions = f"{self.instructions}\nWrite your entire response in {language}"
