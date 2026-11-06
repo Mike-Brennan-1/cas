@@ -2,6 +2,10 @@
 
 A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The Sims 4. Pick a name, hometown, traits and an aspiration, then have an OpenAI model write a backstory based on those choices.
 
+> Need a last-minute entertainer for a birthday party? Mike owns a llama costume and refuses to explain why.
+>
+> *From the generated backstory of Mike Brennan, an Ambitious, Practice Makes Perfect, Goofball Sim from Willow Creek who wants to be a Renaissance Sim. The [full example](src/cas/data/sims/mike_brennan.json) is included in the repo.*
+
 ## Features
 
 - **Build a profile:** set a name, date of birth, hometown and portrait.
