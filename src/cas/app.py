@@ -8,7 +8,7 @@ from cas.sim_image import IMAGE_KEY, sim_image_input
 from cas.sim_store import list_saved_sims, load_sim, save_sim, sim_exists
 from cas.traits import load_traits, load_aspirations, load_worlds
 
-from cas.ai import write_backstory
+from cas.ai import write_backstory, refine_backstory
 
 class sim:
     def __init__(self):
@@ -134,6 +134,18 @@ if button:
         selected_language = None    
     prompt = json.dumps(add_descriptions_to_sim(sim), default=str) 
     st.session_state["backstory"] = write_backstory(prompt, language=selected_language)
+
+refine = st.text_area("Refine backstory")
+refine_button = st.button("Submit")
+
+if refine_button and refine and st.session_state.get("backstory"):
+    st.session_state["backstory"] = refine_backstory(
+        sim=json.dumps(add_descriptions_to_sim(sim), default=str),
+        backstory=st.session_state["backstory"],
+        language=None if language == "English" else language,
+        prompt=refine,
+    )
+    
     
 sim.backstory = st.session_state.get("backstory")
 if sim.backstory:
