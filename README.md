@@ -6,6 +6,14 @@ A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The
 >
 > *From the generated backstory of Mike Brennan, an Ambitious, Practice Makes Perfect, Goofball Sim from Willow Creek who wants to be a Renaissance Sim. The [full example](src/cas/data/sims/mike_brennan.json) is included in the repo.*
 
+<img width="1824" height="803" alt="image" src="https://github.com/user-attachments/assets/531dc42b-0997-460d-873a-9dc4caf817bc" />
+
+<img width="1832" height="794" alt="image" src="https://github.com/user-attachments/assets/076f16af-6f8d-4337-8e76-07caa40f1e17" />
+
+<img width="1811" height="807" alt="image" src="https://github.com/user-attachments/assets/39f53254-2b9e-4b37-82f4-aae57ea48711" />
+
+<img width="1738" height="797" alt="image" src="https://github.com/user-attachments/assets/f485a3b2-6cb5-4a77-83a8-8784309d1010" />
+
 ## Features
 
 - **Build a profile:** set a name, date of birth, hometown and portrait.
