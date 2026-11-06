@@ -2,10 +2,6 @@
 
 A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The Sims 4. Pick a name, hometown, traits and an aspiration, then have an OpenAI model write a backstory based on those choices.
 
-> Terry never found proof of most of these theories… but they did discover something better: a talent for turning fear into fiction.
->
-> *From the generated backstory of Terry Anderson, a Paranoid, Creative, Genius Sim from Copperdale who wants to be a Bestselling Author. The [full example](src/cas/data/sims/terry_anderson.json) is included in the repo.*
-
 ## Features
 
 - **Build a profile:** set a name, date of birth, hometown and portrait.
