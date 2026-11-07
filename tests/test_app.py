@@ -163,6 +163,17 @@ def test_loading_a_sim_without_an_image_clears_the_current_one(make_sim, png_byt
     assert IMAGE_KEY not in app.session_state
 
 
+def test_new_sim_clears_traits_and_aspiration(app):
+    app.multiselect(key="traits").set_value(["Creative", "Genius"])
+    app.selectbox(key="aspiration").set_value("Bestselling Author").run()
+
+    button(app, "New sim").click().run()
+
+    assert_no_errors(app)
+    assert app.multiselect(key="traits").value == []
+    assert app.selectbox(key="aspiration").value is None
+
+
 def test_load_button_is_disabled_until_a_sim_is_chosen(app):
     assert button(app, "Load sim").disabled
 
