@@ -44,7 +44,7 @@ profile_details, profile_image = st.columns(2)
 
 
 with st.sidebar:
-    st.title("Basic sim info")
+    st.title("Sim profile")
     sim.image = sim_image_input()
     sim.first_name = st.text_input("First name", key="first_name")
     sim.surname = st.text_input("Surname", key="surname")
