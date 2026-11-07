@@ -24,6 +24,16 @@ class sim:
 
 sim = sim()
 
+def reset_sim():
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+
+    # Deleting a widget's key doesn't clear what the browser shows, so the old
+    # selections come back on the next rerun. Assigning a value does.
+    st.session_state["traits"] = []
+    st.session_state["aspiration"] = None
+
+    sim.__init__()
 
 def load_selected_sim():
     saved = load_sim(st.session_state["sim_to_load"])
@@ -84,6 +94,7 @@ with st.sidebar:
 
     st.divider()
     sim_to_load = st.selectbox("Saved sims", list_saved_sims(), index=None, key="sim_to_load")
+    st.button("New sim", on_click=reset_sim)
     st.button("Load sim", on_click=load_selected_sim, disabled=sim_to_load is None)
 
 profile_details.header(f"{sim.first_name} {sim.surname}".strip() or "New sim")
