@@ -8,6 +8,8 @@ A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The
 
 <img width="1824" height="803" alt="image" src="https://github.com/user-attachments/assets/531dc42b-0997-460d-873a-9dc4caf817bc" />
 
+<img width="1830" height="768" alt="image" src="https://github.com/user-attachments/assets/f15ae7ca-fb73-4cae-afdb-4aaa0e2ddb28" />
+
 <img width="1832" height="794" alt="image" src="https://github.com/user-attachments/assets/076f16af-6f8d-4337-8e76-07caa40f1e17" />
 
 <img width="1811" height="807" alt="image" src="https://github.com/user-attachments/assets/39f53254-2b9e-4b37-82f4-aae57ea48711" />
@@ -18,9 +20,9 @@ A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The
 
 - **Build a profile:** set a name, date of birth, hometown and portrait.
 - **Browse game data:** choose from 21 traits, 103 aspirations and 31 worlds. Selecting an aspiration also shows its bonus trait.
-- **Generate a backstory:** write one in English or Russian, using the descriptions of the chosen traits and aspiration as context. Adding other supported languages is as simple as updating the Streamlit dropdown.
+- **Generate backstory from traits:** write one in English or Russian, using the descriptions of the chosen traits and aspiration as context. Adding other supported languages is as simple as updating the Streamlit dropdown.
 - **Refine a backstory:** describe the changes you want, and the model rewrites the backstory with them.
-- **Start from your own backstory:** write one yourself, and the model picks up to three traits and an aspiration to match, with a short explanation. You can change its picks before saving.
+- **Select traits from backstory:** write one yourself, and the model picks up to three traits and an aspiration to match, with a short explanation. You can change its picks before saving.
 - **Add a portrait easily:** upload an image, or paste one straight from the clipboard. (`Grateful thanks to Mr Claude for this bit`)
 - **Save and reload Sims:** Sims are stored as local json files.
 
