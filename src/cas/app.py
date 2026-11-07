@@ -8,7 +8,7 @@ from cas.sim_image import IMAGE_KEY, sim_image_input
 from cas.sim_store import list_saved_sims, load_sim, save_sim, sim_exists
 from cas.traits import load_traits, load_aspirations, load_worlds
 
-from cas.ai import write_backstory, refine_backstory
+from cas.ai import write_backstory, refine_backstory, pick_traits_and_aspiration
 
 class sim:
     def __init__(self):
@@ -34,6 +34,36 @@ def load_selected_sim():
         st.session_state[IMAGE_KEY] = saved["image"]
     else:
         st.session_state.pop(IMAGE_KEY, None)
+
+    st.session_state.pop("pick_message", None)
+
+
+def pick_from_backstory():
+    """Fill in the traits and aspiration from the user's own backstory.
+
+    This runs as a button callback, because Streamlit only lets widget values be
+    changed before the widgets are drawn.
+    """
+    backstory = st.session_state.get("own_backstory", "").strip()
+    if not backstory:
+        st.session_state["pick_message"] = ("warning", "Write a backstory first.")
+        return
+
+    traits, aspirations = load_traits(), load_aspirations()
+    try:
+        picks = pick_traits_and_aspiration(
+            backstory,
+            traits=dict(zip(traits["Trait"], traits["Description"])),
+            aspirations=dict(zip(aspirations["Aspiration"], aspirations["Description"])),
+        )
+    except RuntimeError as e:
+        st.session_state["pick_message"] = ("error", f"Couldn't pick traits: {e}")
+        return
+
+    st.session_state["traits"] = picks["traits"]
+    st.session_state["aspiration"] = picks["aspiration"]
+    st.session_state["backstory"] = backstory
+    st.session_state["pick_message"] = ("info", picks["reasoning"])
 
 
 if saved_name := st.session_state.pop("saved_sim_name", None):
@@ -61,6 +91,13 @@ profile_details.write(f"DOB: {sim.dob.strftime('%d/%m/%y')}" or None)
 profile_details.write(f"Hometown: {sim.hometown}" or None)
 if sim.image:
     profile_image.image(sim.image, width="stretch", alt="Sim image")
+
+with st.expander("Start from your own backstory"):
+    st.text_area("Your backstory", key="own_backstory", height=200)
+    st.button("Pick traits and aspiration", on_click=pick_from_backstory)
+    if pick_message := st.session_state.get("pick_message"):
+        kind, text = pick_message
+        getattr(st, kind)(text)
 
 st.header("Traits")
 traits = load_traits()

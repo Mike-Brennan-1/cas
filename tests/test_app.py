@@ -1,8 +1,11 @@
 """Run app.py through Streamlit's test harness, since its logic lives in the script."""
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from openai import APIError
+from unittest.mock import MagicMock
 from streamlit.testing.v1 import AppTest
 
 import cas
@@ -92,6 +95,43 @@ def test_russian_is_passed_to_the_model(app, fake_openai):
     button(app, "Write backstory").click().run()
 
     assert "Write your entire response in Russian" in fake_openai.call_args.kwargs["instructions"]
+
+
+def test_picking_from_a_backstory_fills_in_the_form(app, fake_openai):
+    fake_openai.return_value = SimpleNamespace(id="resp_1", output_text=json.dumps({
+        "traits": ["Creative", "Genius"],
+        "aspiration": "Bestselling Author",
+        "reasoning": "Terry writes a lot.",
+    }))
+
+    app.text_area(key="own_backstory").set_value("Terry wrote novels every night.")
+    button(app, "Pick traits and aspiration").click().run()
+
+    assert_no_errors(app)
+    assert app.multiselect(key="traits").value == ["Creative", "Genius"]
+    assert app.selectbox(key="aspiration").value == "Bestselling Author"
+    assert [block.value for block in app.code] == ["Terry wrote novels every night."]
+    assert [info.value for info in app.info] == ["Terry writes a lot."]
+    assert "Terry wrote novels every night." in fake_openai.call_args.kwargs["input"]
+
+
+def test_picking_needs_a_backstory(app, fake_openai):
+    button(app, "Pick traits and aspiration").click().run()
+
+    assert_no_errors(app)
+    fake_openai.assert_not_called()
+    assert "Write a backstory first." in [w.value for w in app.warning]
+
+
+def test_picking_shows_api_errors(app, fake_openai):
+    fake_openai.side_effect = APIError("Service down", request=MagicMock(), body=None)
+
+    app.text_area(key="own_backstory").set_value("Terry wrote novels every night.")
+    button(app, "Pick traits and aspiration").click().run()
+
+    assert_no_errors(app)
+    assert app.multiselect(key="traits").value == []
+    assert any("Service down" in e.value for e in app.error)
 
 
 def test_loading_a_sim_fills_in_the_form(make_sim, png_bytes):

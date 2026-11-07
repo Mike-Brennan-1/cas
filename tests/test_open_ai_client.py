@@ -35,6 +35,14 @@ def test_sends_the_prompt_model_and_instructions(client):
     }
 
 
+def test_text_format_is_sent_when_given(client):
+    text_format = {"type": "json_schema", "name": "x", "schema": {}}
+
+    client.process_prompt("Hi", text_format=text_format)
+
+    assert sent_to_api(client)["text"] == {"format": text_format}
+
+
 def test_language_is_added_to_the_instructions(client):
     client.process_prompt("Hi", language="Russian")
 
