@@ -19,7 +19,7 @@ A Streamlit app, which I made for my Sims-obsessed wife. Plan characters for The
 ## Features
 
 - **Build a profile:** set a name, date of birth, hometown and portrait.
-- **Browse game data:** choose from 21 traits, 103 aspirations and 31 worlds. Selecting an aspiration also shows its bonus trait.
+- **Browse game data:** filter by the packs you own, then choose from 83 traits (with the pack each comes from), 103 aspirations and 31 worlds. Selecting an aspiration also shows its bonus trait.
 - **Generate backstory from traits:** write one in English or Russian, using the descriptions of the chosen traits and aspiration as context. Adding other supported languages is as simple as updating the Streamlit dropdown.
 - **Refine a backstory:** describe the changes you want, and the model rewrites the backstory with them.
 - **Select traits from backstory:** write one yourself, and the model picks up to three traits and an aspiration to match, with a short explanation. You can change its picks before saving.
