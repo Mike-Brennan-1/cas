@@ -2,6 +2,7 @@ import json
 import re
 from datetime import date
 from pathlib import Path
+import os
 
 SIMS_DIR = Path(__file__).parent / "data" / "sims"
 
@@ -43,3 +44,12 @@ def load_sim(name: str) -> dict:
     image_path = path.with_suffix(".image")
     sim["image"] = image_path.read_bytes() if image_path.exists() else None
     return sim
+
+def delete_sim(name: str) -> None:
+    path =_sim_path(name)
+    image_path = path.with_suffix(".image")
+
+    if path.exists():
+        os.remove(path)
+    if image_path.exists():
+        os.remove(image_path)

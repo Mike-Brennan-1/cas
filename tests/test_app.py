@@ -1,5 +1,6 @@
 """Run app.py through Streamlit's test harness, since its logic lives in the script."""
 import json
+from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -163,13 +164,24 @@ def test_loading_a_sim_without_an_image_clears_the_current_one(make_sim, png_byt
     assert IMAGE_KEY not in app.session_state
 
 
-def test_new_sim_clears_traits_and_aspiration(app):
+def test_new_sim_clears_the_form(app):
+    app.text_input(key="first_name").set_value("Terry")
+    app.text_input(key="surname").set_value("Anderson")
+    app.date_input(key="dob").set_value(date(1990, 11, 6))
+    app.selectbox(key="hometown").set_value("Copperdale")
+    app.text_area(key="own_backstory").set_value("Terry wrote novels every night.")
     app.multiselect(key="traits").set_value(["Creative", "Genius"])
     app.selectbox(key="aspiration").set_value("Bestselling Author").run()
 
     button(app, "New sim").click().run()
 
     assert_no_errors(app)
+    assert app.text_input(key="first_name").value == ""
+    assert app.text_input(key="surname").value == ""
+    assert app.date_input(key="dob").value == date.today()
+    assert app.selectbox(key="hometown").value is None
+    assert app.selectbox(key="sim_to_load").value is None
+    assert app.text_area(key="own_backstory").value == ""
     assert app.multiselect(key="traits").value == []
     assert app.selectbox(key="aspiration").value is None
 
