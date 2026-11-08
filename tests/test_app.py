@@ -1,5 +1,6 @@
 """Run app.py through Streamlit's test harness, since its logic lives in the script."""
 import json
+from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -10,7 +11,7 @@ from streamlit.testing.v1 import AppTest
 
 import cas
 from cas.sim_image import IMAGE_KEY
-from cas.sim_store import save_sim
+from cas.sim_store import save_sim, sim_exists
 from cas.traits import load_aspirations, load_traits
 
 APP_PATH = str(Path(cas.__file__).parent / "app.py")
@@ -163,15 +164,63 @@ def test_loading_a_sim_without_an_image_clears_the_current_one(make_sim, png_byt
     assert IMAGE_KEY not in app.session_state
 
 
-def test_new_sim_clears_traits_and_aspiration(app):
+def test_new_sim_clears_the_form(app):
+    app.text_input(key="first_name").set_value("Terry")
+    app.text_input(key="surname").set_value("Anderson")
+    app.date_input(key="dob").set_value(date(1990, 11, 6))
+    app.selectbox(key="hometown").set_value("Copperdale")
+    app.text_area(key="own_backstory").set_value("Terry wrote novels every night.")
     app.multiselect(key="traits").set_value(["Creative", "Genius"])
     app.selectbox(key="aspiration").set_value("Bestselling Author").run()
 
     button(app, "New sim").click().run()
 
     assert_no_errors(app)
+    assert app.text_input(key="first_name").value == ""
+    assert app.text_input(key="surname").value == ""
+    assert app.date_input(key="dob").value == date.today()
+    assert app.selectbox(key="hometown").value is None
+    assert app.selectbox(key="sim_to_load").value is None
+    assert app.text_area(key="own_backstory").value == ""
     assert app.multiselect(key="traits").value == []
     assert app.selectbox(key="aspiration").value is None
+
+
+def test_delete_removes_the_loaded_sim(make_sim):
+    save_sim(make_sim())
+    app = AppTest.from_file(APP_PATH, default_timeout=30).run()
+
+    app.selectbox(key="sim_to_load").set_value("Terry Anderson").run()
+    button(app, "Load sim").click().run()
+    button(app, "Delete Terry Anderson").click().run()
+
+    assert_no_errors(app)
+    assert not sim_exists("Terry Anderson")
+    assert app.text_input(key="first_name").value == ""
+
+
+def test_delete_is_disabled_for_a_new_sim_even_with_a_saved_sim_chosen(make_sim):
+    save_sim(make_sim())
+    app = AppTest.from_file(APP_PATH, default_timeout=30).run()
+
+    app.selectbox(key="sim_to_load").set_value("Terry Anderson").run()
+
+    assert button(app, "Delete sim").disabled
+
+
+def test_delete_ignores_a_different_sim_chosen_after_loading(make_sim):
+    save_sim(make_sim())
+    save_sim(make_sim(first_name="Mike", surname="Brennan"))
+    app = AppTest.from_file(APP_PATH, default_timeout=30).run()
+
+    app.selectbox(key="sim_to_load").set_value("Terry Anderson").run()
+    button(app, "Load sim").click().run()
+    app.selectbox(key="sim_to_load").set_value("Mike Brennan").run()
+    button(app, "Delete Terry Anderson").click().run()
+
+    assert_no_errors(app)
+    assert not sim_exists("Terry Anderson")
+    assert sim_exists("Mike Brennan")
 
 
 def test_load_button_is_disabled_until_a_sim_is_chosen(app):

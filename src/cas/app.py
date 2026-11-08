@@ -1,11 +1,12 @@
 import json
 import polars as pl
+from datetime import date
 from itertools import zip_longest
 
 import streamlit as st
 
 from cas.sim_image import IMAGE_KEY, sim_image_input
-from cas.sim_store import list_saved_sims, load_sim, save_sim, sim_exists
+from cas.sim_store import list_saved_sims, load_sim, save_sim, sim_exists, delete_sim
 from cas.traits import load_traits, load_aspirations, load_worlds
 
 from cas.ai import write_backstory, refine_backstory, pick_traits_and_aspiration
@@ -29,9 +30,17 @@ def reset_sim():
         del st.session_state[key]
 
     # Deleting a widget's key doesn't clear what the browser shows, so the old
-    # selections come back on the next rerun. Assigning a value does.
-    st.session_state["traits"] = []
-    st.session_state["aspiration"] = None
+    # values come back on the next rerun. Assigning a value does.
+    st.session_state.update({
+        "first_name": "",
+        "surname": "",
+        "dob": date.today(),  # st.date_input's default when no value is given
+        "hometown": None,
+        "sim_to_load": None,
+        "own_backstory": "",
+        "traits": [],
+        "aspiration": None,
+    })
 
     sim.__init__()
 
@@ -46,6 +55,15 @@ def load_selected_sim():
         st.session_state.pop(IMAGE_KEY, None)
 
     st.session_state.pop("pick_message", None)
+
+    # Remember which saved sim is on screen. The "Saved sims" box can't be used
+    # for this, because the user can change it without loading anything.
+    st.session_state["loaded_sim"] = st.session_state["sim_to_load"]
+
+def delete_loaded_sim():
+    if sim_to_delete := st.session_state.get("loaded_sim"):
+        delete_sim(sim_to_delete)
+    reset_sim()
 
 
 def pick_from_backstory():
@@ -96,6 +114,10 @@ with st.sidebar:
     sim_to_load = st.selectbox("Saved sims", list_saved_sims(), index=None, key="sim_to_load")
     st.button("New sim", on_click=reset_sim)
     st.button("Load sim", on_click=load_selected_sim, disabled=sim_to_load is None)
+    loaded_sim = st.session_state.get("loaded_sim")
+    st.button(f"Delete {loaded_sim}" if loaded_sim else "Delete sim",
+              on_click=delete_loaded_sim, disabled=loaded_sim is None,
+              help=None if loaded_sim else "Load a saved sim to delete it.")
 
 profile_details.header(f"{sim.first_name} {sim.surname}".strip() or "New sim")
 profile_details.write(f"DOB: {sim.dob.strftime('%d/%m/%y')}" or None)
@@ -218,8 +240,8 @@ def save_box():
   if st.button("Save", disabled=not name):
     save_sim(sim)
     st.session_state["saved_sim_name"] = name
+    st.session_state["loaded_sim"] = name  # The sim on screen is now this saved one
     st.rerun()
 
 if save:
-    save_box()
-   
+    save_box()   
