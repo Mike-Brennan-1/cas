@@ -7,7 +7,7 @@ import streamlit as st
 
 from cas.sim_image import IMAGE_KEY, sim_image_input
 from cas.sim_store import list_saved_sims, load_sim, save_sim, sim_exists, delete_sim
-from cas.traits import load_traits, load_aspirations, load_worlds
+from cas.traits import filter_by_packs, load_traits, load_aspirations, load_worlds, pack_options
 
 from cas.ai import write_backstory, refine_backstory, pick_traits_and_aspiration
 
@@ -25,13 +25,23 @@ class sim:
 
 sim = sim()
 
+def options_with_selection(options: list[str], key: str) -> list[str]:
+    """Add the widget's current value(s) to its options, so a pack filter never hides
+    a trait, aspiration or hometown that is already chosen (e.g. on a loaded sim)."""
+    selected = st.session_state.get(key)
+    selected = selected if isinstance(selected, list) else [selected]
+    return options + [value for value in selected if value and value not in options]
+
+
 def reset_sim():
+    packs = st.session_state.get("packs", [])  # The packs a user owns aren't part of the sim
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
     # Deleting a widget's key doesn't clear what the browser shows, so the old
     # values come back on the next rerun. Assigning a value does.
     st.session_state.update({
+        "packs": packs,
         "first_name": "",
         "surname": "",
         "dob": date.today(),  # st.date_input's default when no value is given
@@ -77,7 +87,9 @@ def pick_from_backstory():
         st.session_state["pick_message"] = ("warning", "Write a backstory first.")
         return
 
-    traits, aspirations = load_traits(), load_aspirations()
+    packs = st.session_state.get("packs")
+    traits = filter_by_packs(load_traits(), packs)
+    aspirations = filter_by_packs(load_aspirations(), packs)
     try:
         picks = pick_traits_and_aspiration(
             backstory,
@@ -102,12 +114,23 @@ profile_details, profile_image = st.columns(2)
 
 
 with st.sidebar:
+    owned_packs = st.multiselect(
+        "Packs you own",
+        pack_options(load_traits(), load_aspirations(), load_worlds()),
+        key="packs",
+        placeholder="All packs",
+        help="Only show traits, aspirations and hometowns from these packs. "
+             "Base Game is always included. Leave empty to show everything.",
+    )
+    st.divider()
+
     st.title("Sim profile")
     sim.image = sim_image_input()
     sim.first_name = st.text_input("First name", key="first_name")
     sim.surname = st.text_input("Surname", key="surname")
     sim.dob = st.date_input("DOB",format="DD/MM/YYYY",min_value="1900-01-01", key="dob")
-    sim.hometown = st.selectbox("Hometown", load_worlds()["World"].to_list(), index=None, key="hometown")
+    worlds = filter_by_packs(load_worlds(), owned_packs)["World"].to_list()
+    sim.hometown = st.selectbox("Hometown", options_with_selection(worlds, "hometown"), index=None, key="hometown")
     save = st.button("Save sim")
 
     st.divider()
@@ -133,10 +156,11 @@ with st.expander("Start from your own backstory"):
         getattr(st, kind)(text)
 
 st.header("Traits")
-traits = load_traits()
+traits = load_traits()  # Unfiltered, so chosen traits from other packs still have descriptions
+owned_traits = filter_by_packs(traits, owned_packs)
 with st.expander("View all traits"):
-    st.dataframe(traits)
-sim.traits = st.multiselect("Select traits for your sim", traits["Trait"].to_list(), max_selections=3,help=None, key="traits")
+    st.dataframe(owned_traits)
+sim.traits = st.multiselect("Select traits for your sim", options_with_selection(owned_traits["Trait"].to_list(), "traits"), max_selections=3,help=None, key="traits")
 descriptions = dict(zip(traits["Trait"], traits["Description"]))
 
 for col, trait in zip_longest(st.columns(3), sim.traits):
@@ -148,10 +172,11 @@ for col, trait in zip_longest(st.columns(3), sim.traits):
 
 st.header("Aspiration")
 aspirations = load_aspirations()
+owned_aspirations = filter_by_packs(aspirations, owned_packs)
 with st.expander("View all aspirations"):
-    st.dataframe(aspirations)
+    st.dataframe(owned_aspirations)
 
-sim.aspiration = st.selectbox("Select an aspiration for your sim", aspirations["Aspiration"].to_list(), index=None, key="aspiration")
+sim.aspiration = st.selectbox("Select an aspiration for your sim", options_with_selection(owned_aspirations["Aspiration"].to_list(), "aspiration"), index=None, key="aspiration")
 aspirations_by_name = {row["Aspiration"]: row for row in aspirations.iter_rows(named=True)}
 
 aspiration_tile, bonus_trait_tile = (col.container(height=250) for col in st.columns(2))

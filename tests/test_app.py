@@ -223,6 +223,53 @@ def test_delete_ignores_a_different_sim_chosen_after_loading(make_sim):
     assert sim_exists("Mike Brennan")
 
 
+def test_pack_filter_narrows_traits_aspirations_and_hometowns(app):
+    app.multiselect(key="packs").set_value(["Spa Day"]).run()
+
+    assert_no_errors(app)
+    traits = app.multiselect(key="traits").options
+    assert "High Maintenance" in traits  # Spa Day
+    assert "Creative" in traits  # Base Game is always included
+    assert "Lovebug" not in traits  # Lovestruck
+    assert "Inner Peace" in app.selectbox(key="aspiration").options
+    assert "Bodybuilder" in app.selectbox(key="aspiration").options
+    assert "Copperdale" not in app.selectbox(key="hometown").options
+
+
+def test_pack_filter_keeps_choices_already_made(app):
+    app.multiselect(key="traits").set_value(["Lovebug"])
+    app.selectbox(key="hometown").set_value("Copperdale").run()
+
+    app.multiselect(key="packs").set_value(["Spa Day"]).run()
+
+    assert_no_errors(app)
+    assert app.multiselect(key="traits").value == ["Lovebug"]
+    assert app.selectbox(key="hometown").value == "Copperdale"
+
+
+def test_new_sim_keeps_the_pack_filter(app):
+    app.multiselect(key="packs").set_value(["Spa Day"]).run()
+
+    button(app, "New sim").click().run()
+
+    assert_no_errors(app)
+    assert app.multiselect(key="packs").value == ["Spa Day"]
+
+
+def test_picking_only_offers_traits_from_owned_packs(app, fake_openai):
+    fake_openai.return_value = SimpleNamespace(id="resp_1", output_text=json.dumps({
+        "traits": ["Creative"], "aspiration": "Bestselling Author", "reasoning": "",
+    }))
+    app.multiselect(key="packs").set_value(["Spa Day"])
+    app.text_area(key="own_backstory").set_value("Terry wrote novels every night.")
+    button(app, "Pick traits and aspiration").click().run()
+
+    assert_no_errors(app)
+    prompt = fake_openai.call_args.kwargs["input"]
+    assert "High Maintenance" in prompt
+    assert "Lovebug" not in prompt
+
+
 def test_load_button_is_disabled_until_a_sim_is_chosen(app):
     assert button(app, "Load sim").disabled
 
